@@ -27,20 +27,25 @@ def load_and_prepare_data():
     print("STEP 1: LOADING AND PREPARING DATA")
     print("=" * 80)
     
-    # Extract zip file if not already extracted
-    if not os.path.exists('train.csv') or not os.path.exists('test.csv'):
+    # Extract zip file if the CSV files are not already available
+    if not (os.path.exists('train.csv') and os.path.exists('test.csv')) and not (
+        os.path.exists(os.path.join('dataset', 'train.csv')) and
+        os.path.exists(os.path.join('dataset', 'test.csv'))
+    ):
         print("\nExtracting Datasets.zip...")
         with ZipFile('Datasets.zip', 'r') as zip_ref:
             zip_ref.extractall('.')
     
+    data_dir = '.' if os.path.exists('train.csv') and os.path.exists('test.csv') else 'dataset'
+
     # Load datasets
     print("Loading training data...")
-    train_df = pd.read_csv('train.csv')
+    train_df = pd.read_csv(os.path.join(data_dir, 'train.csv'))
     print(f"Train shape: {train_df.shape}")
     print(f"Train columns: {train_df.columns.tolist()}")
     
     print("\nLoading test data...")
-    test_df = pd.read_csv('test.csv')
+    test_df = pd.read_csv(os.path.join(data_dir, 'test.csv'))
     print(f"Test shape: {test_df.shape}")
     print(f"Test columns: {test_df.columns.tolist()}")
     
