@@ -1,0 +1,6 @@
+# Extracted dataset files
+dataset/
+train.csv
+test.csv
+__pycache__/
+*.pyc

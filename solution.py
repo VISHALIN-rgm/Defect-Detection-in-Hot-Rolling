@@ -10,8 +10,8 @@ Score: Max 100 (based on false negatives and false positives)
 import pandas as pd
 import numpy as np
 import warnings
-from zipfile import ZipFile
-import os
+
+from data_utils import load_train_test
 
 # Suppress warnings
 warnings.filterwarnings('ignore')
@@ -27,30 +27,18 @@ def load_and_prepare_data():
     print("STEP 1: LOADING AND PREPARING DATA")
     print("=" * 80)
     
-    # Extract zip file if not already extracted
-    if not os.path.exists('train.csv') or not os.path.exists('test.csv'):
-        print("\nExtracting Datasets.zip...")
-        with ZipFile('Datasets.zip', 'r') as zip_ref:
-            zip_ref.extractall('.')
-    
-    # Load datasets
-    print("Loading training data...")
-    train_df = pd.read_csv('train.csv')
+    train_df, test_df = load_train_test()
     print(f"Train shape: {train_df.shape}")
-    print(f"Train columns: {train_df.columns.tolist()}")
-    
-    print("\nLoading test data...")
-    test_df = pd.read_csv('test.csv')
     print(f"Test shape: {test_df.shape}")
-    print(f"Test columns: {test_df.columns.tolist()}")
-    
+
     # Display basic statistics
     print("\n" + "=" * 80)
     print("DATA STATISTICS")
     print("=" * 80)
     print(f"\nClass distribution in training data:")
     print(train_df['Y'].value_counts())
-    print(f"\nClass imbalance ratio: {train_df['Y'].value_counts()[0]} : {train_df['Y'].value_counts()[1]}")
+    counts = train_df['Y'].value_counts()
+    print(f"\nClass imbalance ratio: {counts.get(0, 0)} : {counts.get(1, 0)}")
     
     print(f"\nMissing values in train data:")
     missing_train = train_df.isnull().sum()
@@ -108,7 +96,7 @@ def preprocess_features(train_df, test_df):
 # STEP 3: FEATURE IMPORTANCE ANALYSIS
 # ============================================================================
 
-def analyze_feature_importance(X_train, y_train):
+def analyze_feature_importance(X_train, y_train, feature_names=None):
     """Analyze and visualize feature importance"""
     
     print("\n" + "=" * 80)
@@ -124,7 +112,7 @@ def analyze_feature_importance(X_train, y_train):
     
     # Get feature importances
     importances = rf_quick.feature_importances_
-    feature_names = [f'X{i}' for i in range(1, len(importances) + 1)]
+    feature_names = feature_names or [f'X{i}' for i in range(1, len(importances) + 1)]
     
     # Sort and display top features
     feature_importance_df = pd.DataFrame({
@@ -402,7 +390,7 @@ def main():
     X_train, X_test, y_train, test_coil_ids, feature_names = preprocess_features(train_df, test_df)
     
     # Step 3: Analyze features
-    feature_importance_df = analyze_feature_importance(X_train, y_train)
+    feature_importance_df = analyze_feature_importance(X_train, y_train, feature_names)
     
     # Step 4: Train models
     models = train_models(X_train, y_train)
