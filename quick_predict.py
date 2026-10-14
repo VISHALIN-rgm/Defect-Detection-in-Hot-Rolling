@@ -12,16 +12,20 @@ warnings.filterwarnings('ignore')
 
 print("Generating sample predictions...")
 
-# Try to extract and load data
+# Load data from either the repository root or the archive's dataset/ directory.
 try:
-    if os.path.exists('Datasets.zip'):
+    if not (os.path.exists('train.csv') and os.path.exists('test.csv')) and not (
+        os.path.exists(os.path.join('dataset', 'train.csv')) and
+        os.path.exists(os.path.join('dataset', 'test.csv'))
+    ):
         with ZipFile('Datasets.zip', 'r') as zip_ref:
             zip_ref.extractall('.')
     
-    test_df = pd.read_csv('test.csv')
+    data_dir = '.' if os.path.exists('train.csv') and os.path.exists('test.csv') else 'dataset'
+    test_df = pd.read_csv(os.path.join(data_dir, 'test.csv'))
     
     # Simple baseline: use statistical model with feature analysis
-    train_df = pd.read_csv('train.csv')
+    train_df = pd.read_csv(os.path.join(data_dir, 'train.csv'))
     
     # Get basic statistics to inform predictions
     defect_rate = train_df['Y'].mean()
@@ -62,17 +66,4 @@ try:
     
 except Exception as e:
     print(f"Error: {e}")
-    print("\nCreating default submission with balanced predictions...")
-    
-    # Default submission if data loading fails
-    # Assumes test.csv has 339 rows based on problem description
-    n_test = 339
-    predictions = np.random.binomial(1, 0.2, n_test)  # ~20% defect rate
-    
-    submission = pd.DataFrame({
-        'CoilID': range(1, n_test + 1),
-        'Y': predictions
-    })
-    
-    submission.to_csv('expected_submission.csv', index=False)
-    print(f"\n✓ expected_submission.csv created (default)")
+    raise
